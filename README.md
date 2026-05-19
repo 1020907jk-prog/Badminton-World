@@ -2,14 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>羽球即時計分板 (可選賽制)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>羽球橫向即時計分板</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
         }
         
         body {
@@ -17,86 +17,100 @@
             color: #ffffff;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            height: 100vh;
+            overflow: hidden; /* 防止滾動條影響橫向視覺 */
+            padding: 0.5rem;
+        }
+
+        /* 頂部控制列（橫向時盡量縮減高度，留給分數） */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            min-height: 100vh;
-            padding: 1rem;
+            padding: 0.3rem 1.5rem;
+            background: #1f2937;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            height: 10vh;
         }
 
         h1 {
-            font-size: 1.6rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
             color: #9ca3af;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
-        /* 賽制選擇區塊 */
         .game-mode-selector {
-            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: #1f2937;
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-        .game-mode-selector label {
-            color: #9ca3af;
-            font-size: 0.9rem;
         }
         .game-mode-selector select {
             background: #374151;
             color: #ffc13b;
             border: none;
-            padding: 0.4rem 0.8rem;
-            font-size: 1rem;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.9rem;
             font-weight: bold;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            outline: none;
         }
 
-        /* 獲勝公告 */
         .winner-announcement {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #10b981;
-            margin-bottom: 1rem;
-            height: 2rem; /* 固定高度防止畫面跳動 */
-            text-align: center;
         }
 
-        /* 計分板外框 */
-        .scoreboard {
-            background-color: #1f2937;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        .btn-control {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        .btn-control:hover { background-color: #dc2626; }
+        .btn-swap { background-color: #3b82f6; }
+        .btn-swap:hover { background-color: #2563eb; }
+
+        /* 橫向滿版計分板主體 */
+        .scoreboard-container {
             display: flex;
-            align-items: center;
-            gap: 2rem;
-            width: 100%;
-            max-width: 700px;
+            flex: 1;
+            gap: 0.5rem;
+            height: 88vh;
         }
 
-        /* 隊伍區塊 */
+        /* 左右隊伍大區塊 */
         .team-box {
             flex: 1;
-            text-align: center;
+            background-color: #1f2937;
+            border-radius: 15px;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            padding: 1.5rem;
             position: relative;
+            transition: background 0.3s;
         }
 
-        /* 發球權燈號 */
+        /* 發球權燈號：改在隊伍名稱旁邊 */
+        .team-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
         .serve-indicator {
-            width: 15px;
-            height: 15px;
+            width: 14px;
+            height: 14px;
             background-color: transparent;
             border-radius: 50%;
-            margin-bottom: 0.5rem;
             transition: 0.3s;
         }
         .team-box.serving .serve-indicator {
@@ -105,31 +119,30 @@
         }
 
         .team-name {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #9ca3af;
             font-weight: 600;
-            margin-bottom: 0.5rem;
         }
 
-        /* 超大分數顯示 */
+        /* 橫向超大滿版分數（佔據主要空間） */
         .score-display {
-            font-size: 7rem;
-            font-weight: 800;
+            font-size: 35vh; /* 依據螢幕高度縮放，保證字體極大 */
+            font-weight: 900;
             color: #f59e0b;
             line-height: 1;
-            margin: 0.5rem 0;
             cursor: pointer;
             user-select: none;
             width: 100%;
-            padding: 1rem 0;
-            border-radius: 12px;
-            transition: background 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            transition: color 0.2s;
         }
         .score-display:hover {
-            background-color: #374151;
+            color: #ffffff;
         }
 
-        /* 當某隊贏了，分數變綠色並發光 */
         .score-display.winner-score {
             color: #10b981 !important;
             animation: pulse 1.5s infinite;
@@ -141,115 +154,75 @@
             100% { opacity: 1; }
         }
 
-        .vs {
-            font-size: 1.5rem;
-            color: #4b5563;
-            font-weight: bold;
-        }
-
-        /* 按鈕 */
-        .btn-group {
-            display: flex;
-            gap: 0.8rem;
-            width: 100%;
-        }
-        
-        .btn {
-            flex: 1;
+        /* 減分按鈕（放到底部，大大的加分只要點數字就好） */
+        .btn-minus {
+            background-color: #4b5563;
+            color: white;
             border: none;
-            padding: 0.75rem;
+            padding: 0.5rem 2rem;
             font-size: 1.2rem;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
+            width: 50%;
+            max-width: 150px;
             transition: 0.2s;
         }
-
-        .btn-plus { background-color: #10b981; color: white; }
-        .btn-plus:hover { background-color: #059669; }
-
-        .btn-minus { background-color: #4b5563; color: white; }
         .btn-minus:hover { background-color: #374151; }
 
-        /* 功能控制列 */
-        .controls {
-            margin-top: 2rem;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn-control {
-            background-color: #ef4444;
-            color: white;
-            padding: 0.6rem 1.5rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-control:hover { background-color: #dc2626; }
-        
-        .btn-swap { background-color: #3b82f6; }
-        .btn-swap:hover { background-color: #2563eb; }
-
-        @media (max-width: 600px) {
-            .scoreboard {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 1.5rem;
-            }
-            .vs { margin: 0.5rem 0; }
-            .score-display { font-size: 6rem; }
+        /* 中央分隔線 */
+        .vs-line {
+            width: 2px;
+            background-color: #374151;
+            align-self: shrink;
         }
     </style>
 </head>
 <body>
 
-    <h1>🏸 BADMINTON SCOREBOARD</h1>
+    <!-- 頂部控制列 -->
+    <div class="top-bar">
+        <h1>🏸 BADMINTON</h1>
+        
+        <!-- 獲勝公告 -->
+        <div class="winner-announcement" id="winnerText"></div>
 
-    <!-- 新增：賽制選擇器 -->
-    <div class="game-mode-selector">
-        <label for="maxScoreSelect">賽制點數：</label>
-        <select id="maxScoreSelect" onchange="resetScore()">
-            <option value="15">15 分制 (短局/臨打)</option>
-            <option value="21" selected>21 分制 (正規賽)</option>
-            <option value="31">31 分制 (單局決戰)</option>
-        </select>
+        <div class="game-mode-selector">
+            <select id="maxScoreSelect" onchange="resetScore()">
+                <option value="15">15 分</option>
+                <option value="21" selected>21 分</option>
+                <option value="31">31 分</option>
+            </select>
+            <button class="btn-control btn-swap" onclick="swapSides()">換場</button>
+            <button class="btn-control" onclick="resetScore()">重設</button>
+        </div>
     </div>
 
-    <!-- 新增：獲勝公告欄 -->
-    <div class="winner-announcement" id="winnerText"></div>
-
-    <div class="scoreboard">
-        <!-- TEAM A -->
+    <!-- 橫向計分板主體 -->
+    <div class="scoreboard-container">
+        <!-- LEFT TEAM -->
         <div class="team-box serving" id="boxA" onclick="setServer('A')">
-            <div class="serve-indicator"></div>
-            <div class="team-name">TEAM A</div>
+            <div class="team-header">
+                <div class="serve-indicator"></div>
+                <div class="team-name">TEAM A</div>
+            </div>
+            <!-- 點擊超大分數直接 +1 -->
             <div class="score-display" id="scoreA" onclick="changeScore('A', 1, event)">0</div>
-            <div class="btn-group">
-                <button class="btn btn-minus" onclick="changeScore('A', -1, event)">-1</button>
-                <button class="btn btn-plus" onclick="changeScore('A', 1, event)">+1</button>
-            </div>
+            <button class="btn-minus" onclick="changeScore('A', -1, event)">-1</button>
         </div>
 
-        <div class="vs">VS</div>
+        <div class="vs-line"></div>
 
-        <!-- TEAM B -->
+        <!-- RIGHT TEAM -->
         <div class="team-box" id="boxB" onclick="setServer('B')">
-            <div class="serve-indicator"></div>
-            <div class="team-name">TEAM B</div>
-            <div class="score-display" id="scoreB" onclick="changeScore('B', 1, event)">0</div>
-            <div class="btn-group">
-                <button class="btn btn-minus" onclick="changeScore('B', -1, event)">-1</button>
-                <button class="btn btn-plus" onclick="changeScore('B', 1, event)">+1</button>
+            <div class="team-header">
+                <div class="serve-indicator"></div>
+                <div class="team-name">TEAM B</div>
             </div>
+            <!-- 點擊超大分數直接 +1 -->
+            <div class="score-display" id="scoreB" onclick="changeScore('B', 1, event)">0</div>
+            <button class="btn-minus" onclick="changeScore('B', -1, event)">-1</button>
         </div>
-    </div>
-
-    <div class="controls">
-        <button class="btn-control btn-swap" onclick="swapSides()">更換場地</button>
-        <button class="btn-control" onclick="resetScore()">重設分數</button>
     </div>
 
     <script>
@@ -259,7 +232,7 @@
 
         function changeScore(team, value, event) {
             if (event) event.stopPropagation(); 
-            if (gameOver && value > 0) return; // 如果比賽結束，無法再加分（但可以減分修正錯誤）
+            if (gameOver && value > 0) return; 
 
             let maxScore = parseInt(document.getElementById('maxScoreSelect').value);
 
@@ -276,32 +249,29 @@
             checkWinner(maxScore);
         }
 
-        // 檢查是否有人獲勝 (包含簡化版的 Deuce 規則：必須贏 2 分，或先到最高分)
-        // 這裡採用最常見的臨打規則：先到設定分數即獲勝
         function checkWinner(maxScore) {
             let winText = document.getElementById('winnerText');
             let displayA = document.getElementById('scoreA');
             let displayB = document.getElementById('scoreB');
 
-            // 重設樣式
             gameOver = false;
             winText.innerText = "";
             displayA.classList.remove('winner-score');
             displayB.classList.remove('winner-score');
 
             if (scoreA >= maxScore) {
-                winText.innerText = "🎉 TEAM A 獲勝！";
+                winText.innerText = "🎉 TEAM A WIN!";
                 displayA.classList.add('winner-score');
                 gameOver = true;
             } else if (scoreB >= maxScore) {
-                winText.innerText = "🎉 TEAM B 獲勝！";
+                winText.innerText = "🎉 TEAM B WIN!";
                 displayB.classList.add('winner-score');
                 gameOver = true;
             }
         }
 
         function setServer(team) {
-            if (gameOver) return; // 結束後不切換發球
+            if (gameOver) return;
             document.getElementById('boxA').classList.remove('serving');
             document.getElementById('boxB').classList.remove('serving');
             
@@ -313,14 +283,12 @@
         }
 
         function swapSides() {
-            // 交換分數
             let tempScore = scoreA;
             scoreA = scoreB;
             scoreB = tempScore;
             document.getElementById('scoreA').innerText = scoreA;
             document.getElementById('scoreB').innerText = scoreB;
 
-            // 交換發球燈
             let boxA = document.getElementById('boxA');
             let boxB = document.getElementById('boxB');
             let isAServing = boxA.classList.contains('serving');
@@ -333,7 +301,6 @@
                 boxA.classList.add('serving');
             }
 
-            // 重新判定勝負狀態
             let maxScore = parseInt(document.getElementById('maxScoreSelect').value);
             checkWinner(maxScore);
         }
